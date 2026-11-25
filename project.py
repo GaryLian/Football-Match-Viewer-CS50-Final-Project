@@ -1,5 +1,15 @@
 import csv
 
+class Match:
+    def __init__(self, row):
+        self.season = row["season"]
+        self.date = row["date"]
+        self.home_team = row["home_team"]
+        self.away_team = row["away_team"]
+        self.home_goals = row["home_goals"]
+        self.away_goals = row["away_goals"]
+
+
 def normalize(name):
     return name.strip().lower()
 
@@ -28,19 +38,22 @@ def filter_squad(players, team, season):
             squad.append(player)
     return squad
 
+def load_csv(filename):
+    with open(filename, encoding="utf-8", newline="") as file:
+        return list(csv.DictReader(file))
+
 def main():
     team1 = normalize(input("Enter the first team:\n"))
     while team1 == "":
         print("The first team cannot be empty. Please enter a valid team name.")
         team1 = normalize(input("Enter the first team: "))
-        
+
     team2 = normalize(input("Enter the second team: (press Enter to search for all matches)\n"))
 
     season = input("Enter the season (e.g., 2025-26):\n").strip()
 
-    with open("matches.csv", encoding="utf-8", newline="") as file:
-        reader = csv.DictReader(file)
-        results = filter_matches(reader, team1, team2, season)
+    matches = load_csv("matches.csv")
+    results = filter_matches(matches, team1, team2, season)
 
     for match in results:
         date = match["date"]
@@ -60,17 +73,16 @@ def main():
         answer = input("Show both teams' squads? (y/n): ")
         if answer.lower() == "y":
 
+            players = load_csv("squads.csv")
 
-            with open("squads.csv", encoding="utf-8", newline="") as file:
-                players = list(csv.DictReader(file))
             for team in [team1, team2]:
                 print(f"\n{team.title()} Squad:")
                 
                 squad = filter_squad(players, team, season)
 
                 for player in squad:
-                    print(f"{player['player']} | {player['position']}")
-                
+                    print(f"{player['player']} | {player['position']}")           
+
                 if not squad:
                     print(f"No squad data available.")
 
