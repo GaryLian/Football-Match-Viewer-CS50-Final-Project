@@ -1,90 +1,109 @@
 import csv
+    
 
 class Match:
     def __init__(self, row):
         self.season = row["season"]
-        self.date = row["date"]
+        self.date = row.get("date")
         self.home_team = row["home_team"]
         self.away_team = row["away_team"]
-        self.home_goals = row["home_goals"]
-        self.away_goals = row["away_goals"]
+        self.home_goals = row.get("home_goals")
+        self.away_goals = row.get("away_goals")
+
+    def __str__(self):
+        if self.is_upcoming():
+            return f"{self.date} | {self.home_team} vs {self.away_team} (scheduled)"
+        score = f"{self.home_goals} - {self.away_goals}"
+        return f"{self.date} | {self.home_team} {score} {self.away_team}"
+
+    def is_upcoming(self):
+        """
+        Check if the match is upcoming (no goals recorded).
+        """
+        return self.home_goals == "" and self.away_goals == ""
+
+    def has_team(self, team):
+        """
+        Check if the match involves the specified team.
+
+        The team argument should be normalized.
+        """
+
+        return team in (normalize(self.home_team), normalize(self.away_team))
+
+    def matches_teams(self, team1, team2):
+        """
+        Check if the match involves the specified teams.
+
+        If team2 is "", match any game involving team1.
+
+        Both team1 and team2 should be normalized.
+        """
+
+        if team2 == "":
+            return self.has_team(team1)
+        return team1 != team2 and self.has_team(team1) and self.has_team(team2)
 
 
 def normalize(name):
-    return name.strip().lower()
+    name = name.strip().lower()
+    for label in ("fc", "cf"):
+        name = name.removeprefix(label + " ")
+        name = name.removesuffix(" " + label)
+    return name
 
-def team_in_match(team, home, away):
-    return team == normalize(home) or team == normalize(away)
-
-def matches_teams(team1, team2, home, away):
-    if team2 == "":
-        return team_in_match(team1, home, away)
-    return (team1 != team2) and team_in_match(team1, home, away) and team_in_match(team2, home, away)
 
 def filter_matches(matches, team1, team2, season):
+    """
+    Return a list of CSV rows that involve the specified teams in the given season.
+
+    If team2 is "", return all of team1's matches.
+
+    Both team1 and team2 should be normalized.
+    """
+
     result = []
-    for match in matches:
-        if match["season"] == season:
-            home = match["home_team"]
-            away = match["away_team"]
-            if matches_teams(team1, team2, home, away):
-                result.append(match)
+    for row in matches:
+        if row["season"] == season and Match(row).matches_teams(team1, team2):
+            result.append(row)
     return result
 
-def filter_squad(players, team, season):
-    squad = []
-    for player in players:
-        if normalize(player["team"]) == team and player["season"] == season:
-            squad.append(player)
-    return squad
 
 def load_csv(filename):
     with open(filename, encoding="utf-8", newline="") as file:
         return list(csv.DictReader(file))
 
-def main():
+
+def get_teams():
+    """
+    Prompt for teams and season. team2 is "" if the user skips it.
+    """
+
     team1 = normalize(input("Enter the first team:\n"))
     while team1 == "":
         print("The first team cannot be empty. Please enter a valid team name.")
-        team1 = normalize(input("Enter the first team: "))
+        team1 = normalize(input("Enter the first team:\n"))
 
     team2 = normalize(input("Enter the second team: (press Enter to search for all matches)\n"))
 
     season = input("Enter the season (e.g., 2025-26):\n").strip()
 
-    matches = load_csv("matches.csv")
-    results = filter_matches(matches, team1, team2, season)
+    return team1, team2, season
 
-    for match in results:
-        date = match["date"]
-        home = match["home_team"]
-        away = match["away_team"]
-        home_goals = match["home_goals"]
-        away_goals = match["away_goals"]
 
-        if home_goals == "" and away_goals == "":
-            print(f"{date} | {home} vs {away} (scheduled)")
-        else:
-            print(f"{date} | {home} {home_goals} - {away_goals} {away}")
+def print_matches(results):
+    for row in results:
+        print(Match(row))
 
+
+def main():
+    team1, team2, season = get_teams()
+    results = filter_matches(load_csv("matches_clean.csv"), team1, team2, season)
     if not results:
         print("No matches found.")
-    elif team2 != "":
-        answer = input("Show both teams' squads? (y/n): ")
-        if answer.lower() == "y":
+        return
+    print_matches(results)
 
-            players = load_csv("squads.csv")
-
-            for team in [team1, team2]:
-                print(f"\n{team.title()} Squad:")
-                
-                squad = filter_squad(players, team, season)
-
-                for player in squad:
-                    print(f"{player['player']} | {player['position']}")           
-
-                if not squad:
-                    print(f"No squad data available.")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Football Match Viewer</title>
+    <style>
+        body { font: 1rem/1.5 "Segoe UI", sans-serif; color: #17352b;
+               max-width: 44rem; margin: 2rem auto; padding: 0 1rem; }
+        form { padding: 1.25rem; background: #f1f6f3; border-radius: .5rem; }
+        label { display: block; margin-bottom: .8rem; }
+        input, select, button { font: inherit; padding: .4rem .6rem; }
+        input, select { display: block; box-sizing: border-box; width: 100%; }
+        button { background: #19563c; color: white; border: 0; border-radius: .25rem; }
+        button { cursor: pointer; }
+        a { color: #185844; }
+        li { margin: .4rem 0; }
+        h1 { text-align: center; }
+        .competitions { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; }
+        .competitions img { width: 5rem; height: 5rem; object-fit: contain; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Football Match Viewer</h1>
+    <div class="competitions">
+        {% for name in ["Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Champions League"] %}
+            <img src="{{ url_for('static', filename=name ~ '.jfif') }}" alt="{{ name }}">
+        {% endfor %}
+    </div>
+    <h2>Search matches</h2>
+    <form action="/" method="get">
+        <label>Team name
+            <input name="team" list="team-names" value="{{ team }}" required>
+        </label>
+        <label>Opponent (optional)
+            <input name="opponent" list="team-names" value="{{ opponent }}">
+        </label>
+        <datalist id="team-names">
+            {% for name in team_names %}
+                <option value="{{ name }}"></option>
+            {% endfor %}
+        </datalist>
+        <label>Season
+            <select name="season">
+                <option value="any" {% if season == "any" %}selected{% endif %}>Any</option>
+                {% for option in seasons %}
+                    <option value="{{ option }}" {% if option == season %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Competition
+            <select name="competition">
+                <option value="any" {% if competition == "any" %}selected{% endif %}>Any</option>
+                {% for option in competitions %}
+                    <option value="{{ option }}" {% if option == competition %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+    {% if matches %}
+        <h2>Matches</h2>
+        <ul>
+            {% for match in matches %}
+                <li>{{ match }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <p><small>Match data: <a href="https://www.kaggle.com/datasets/davidcariboo/player-scores?select=games.csv">Football Data from Transfermarkt</a>.</small></p>
+</main>
+</body>
+</html>

@@ -1,4 +1,11 @@
-from project import filter_matches, filter_squad
+from project import Match, filter_matches, normalize
+
+
+def test_normalize_strips_and_lowercases():
+    assert normalize("  Real Madrid  ") == "real madrid"
+    assert normalize("BARCELONA") == "barcelona"
+    assert normalize("") == ""
+
 
 def test_filter_matches_includes_both_home_orders():
     madrid_home = {
@@ -13,7 +20,8 @@ def test_filter_matches_includes_both_home_orders():
     }
 
     next_season_match = {"season": "2026-27", "home_team": "Barcelona", "away_team": "Real Madrid"}
-    matches = [madrid_home, barcelona_home, next_season_match]
+    madrid_sevilla = {"season": "2025-26", "home_team": "Real Madrid", "away_team": "Sevilla"}
+    matches = [madrid_home, barcelona_home, next_season_match, madrid_sevilla]
     results = filter_matches(matches, "real madrid", "barcelona", "2025-26")
 
     assert results == [madrid_home, barcelona_home]
@@ -56,27 +64,27 @@ def test_filter_matches_with_no_opponent():
     assert results == [madrid_home, madrid_away]
 
 
-def test_filter_squad_by_team_and_season():
-    madrid_player = {
+def test_match_displays_goalless_draw():
+    row = {
         "season": "2025-26",
-        "team": "Real Madrid",
-        "player": "Madrid Player A",
-        "position": "Goalkeeper",
+        "date": "2026-03-21",
+        "home_team": "Barcelona",
+        "away_team": "Real Madrid",
+        "home_goals": "0",
+        "away_goals": "0",
     }
-    barcelona_player = {
+    match = Match(row)
+    assert str(match) == "2026-03-21 | Barcelona 0 - 0 Real Madrid"
+
+
+def test_match_displays_scheduled_game():
+    row = {
         "season": "2025-26",
-        "team": "Barcelona",
-        "player": "Barcelona Player A",
-        "position": "Midfielder",
+        "date": "2026-03-21",
+        "home_team": "Barcelona",
+        "away_team": "Real Madrid",
+        "home_goals": "",
+        "away_goals": "",
     }
-    next_season_player = {
-        "season": "2026-27",
-        "team": "Real Madrid",
-        "player": "Madrid Player B",
-        "position": "Defender",
-    }
-
-    players = [madrid_player, barcelona_player, next_season_player]
-    results = filter_squad(players, "real madrid", "2025-26")
-
-    assert results == [madrid_player]
+    match = Match(row)
+    assert str(match) == "2026-03-21 | Barcelona vs Real Madrid (scheduled)"
