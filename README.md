@@ -30,6 +30,7 @@ As a football (Soccer) fan, I often want to know how two teams have done against
 ## Data
 
 The match data comes from David Cariboo's [Football Data from Transfermarkt](https://www.kaggle.com/datasets/davidcariboo/player-scores?select=games.csv) on Kaggle.
+The website uses a local CSV file, so new match results appear only when the file is updated.
 
 ## How to Use
 
