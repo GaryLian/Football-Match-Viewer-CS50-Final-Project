@@ -25,7 +25,7 @@
     <h1>Football Match Viewer</h1>
     <div class="competitions">
         {% for name in ["Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Champions League"] %}
-            <img src="{{ url_for('static', filename=name ~ '.jfif') }}" alt="{{ name }}">
+            <img src="{{ url_for('static', filename=name ~ '.jpg') }}" alt="{{ name }}">
         {% endfor %}
     </div>
     <h2>Search matches</h2>
